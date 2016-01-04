@@ -25,6 +25,8 @@ Pod::Spec.new do |s|
   #   * Write the description between the DESC delimiters below.
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
+  This is layout library for UICollectionView like a iCloud share view.
+  Need set delegate <FKCollectionViewLayoutDelegate> for return CGSize.
                    DESC
 
   s.homepage     = "https://github.com/fromkk/FKCollectionViewLayout"
