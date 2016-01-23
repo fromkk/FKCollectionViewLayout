@@ -15,6 +15,8 @@
 		4F741FF51C3124500039BBA1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4F741FF31C3124500039BBA1 /* LaunchScreen.storyboard */; };
 		4F741FFE1C3125A30039BBA1 /* FKCollectionViewLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F741FFD1C3125A30039BBA1 /* FKCollectionViewLayout.m */; };
 		4F7420011C312A190039BBA1 /* FKImageCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F7420001C312A190039BBA1 /* FKImageCollectionViewCell.m */; };
+		AD5582041C53618200EB9129 /* FKPreviewAnimator.m in Sources */ = {isa = PBXBuildFile; fileRef = AD5582031C53618200EB9129 /* FKPreviewAnimator.m */; };
+		AD5582071C53619900EB9129 /* FKPreviewController.m in Sources */ = {isa = PBXBuildFile; fileRef = AD5582061C53619900EB9129 /* FKPreviewController.m */; };
 		AD88C2EC1C39652E00455CF5 /* SectionHeaderView.m in Sources */ = {isa = PBXBuildFile; fileRef = AD88C2EB1C39652E00455CF5 /* SectionHeaderView.m */; };
 		AD88C2EF1C39653B00455CF5 /* SectionFooterView.m in Sources */ = {isa = PBXBuildFile; fileRef = AD88C2EE1C39653B00455CF5 /* SectionFooterView.m */; };
 /* End PBXBuildFile section */
@@ -34,6 +36,10 @@
 		4F741FFD1C3125A30039BBA1 /* FKCollectionViewLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FKCollectionViewLayout.m; sourceTree = "<group>"; };
 		4F741FFF1C312A190039BBA1 /* FKImageCollectionViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FKImageCollectionViewCell.h; sourceTree = "<group>"; };
 		4F7420001C312A190039BBA1 /* FKImageCollectionViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FKImageCollectionViewCell.m; sourceTree = "<group>"; };
+		AD5582021C53618200EB9129 /* FKPreviewAnimator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FKPreviewAnimator.h; sourceTree = "<group>"; };
+		AD5582031C53618200EB9129 /* FKPreviewAnimator.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FKPreviewAnimator.m; sourceTree = "<group>"; };
+		AD5582051C53619900EB9129 /* FKPreviewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FKPreviewController.h; sourceTree = "<group>"; };
+		AD5582061C53619900EB9129 /* FKPreviewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FKPreviewController.m; sourceTree = "<group>"; };
 		AD88C2EA1C39652E00455CF5 /* SectionHeaderView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SectionHeaderView.h; sourceTree = "<group>"; };
 		AD88C2EB1C39652E00455CF5 /* SectionHeaderView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SectionHeaderView.m; sourceTree = "<group>"; };
 		AD88C2ED1C39653B00455CF5 /* SectionFooterView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SectionFooterView.h; sourceTree = "<group>"; };
@@ -86,6 +92,8 @@
 				AD88C2EB1C39652E00455CF5 /* SectionHeaderView.m */,
 				AD88C2ED1C39653B00455CF5 /* SectionFooterView.h */,
 				AD88C2EE1C39653B00455CF5 /* SectionFooterView.m */,
+				AD5582051C53619900EB9129 /* FKPreviewController.h */,
+				AD5582061C53619900EB9129 /* FKPreviewController.m */,
 			);
 			name = FKCollectionViewDemo;
 			path = FKCollectionView;
@@ -104,6 +112,8 @@
 			children = (
 				4F741FFC1C3125A30039BBA1 /* FKCollectionViewLayout.h */,
 				4F741FFD1C3125A30039BBA1 /* FKCollectionViewLayout.m */,
+				AD5582021C53618200EB9129 /* FKPreviewAnimator.h */,
+				AD5582031C53618200EB9129 /* FKPreviewAnimator.m */,
 			);
 			name = FKCollectionView;
 			path = Classes;
@@ -140,6 +150,7 @@
 				TargetAttributes = {
 					4F741FE11C3124500039BBA1 = {
 						CreatedOnToolsVersion = 7.2;
+						DevelopmentTeam = XE9C97EHP4;
 					};
 				};
 			};
@@ -179,10 +190,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				AD5582071C53619900EB9129 /* FKPreviewController.m in Sources */,
 				AD88C2EF1C39653B00455CF5 /* SectionFooterView.m in Sources */,
 				4F741FED1C3124500039BBA1 /* ViewController.m in Sources */,
 				AD88C2EC1C39652E00455CF5 /* SectionHeaderView.m in Sources */,
 				4F7420011C312A190039BBA1 /* FKImageCollectionViewCell.m in Sources */,
+				AD5582041C53618200EB9129 /* FKPreviewAnimator.m in Sources */,
 				4F741FFE1C3125A30039BBA1 /* FKCollectionViewLayout.m in Sources */,
 				4F741FEA1C3124500039BBA1 /* AppDelegate.m in Sources */,
 				4F741FE71C3124500039BBA1 /* main.m in Sources */,
@@ -297,10 +310,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = FKCollectionView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = me.fromkk.FKCollectionView;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.timers-inc.FKCollectionView";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Debug;
 		};
@@ -308,10 +324,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				INFOPLIST_FILE = FKCollectionView/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = me.fromkk.FKCollectionView;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.timers-inc.FKCollectionView";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "";
 			};
 			name = Release;
 		};

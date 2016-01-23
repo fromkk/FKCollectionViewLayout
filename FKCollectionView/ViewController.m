@@ -11,14 +11,17 @@
 #import "FKImageCollectionViewCell.h"
 //#import "SectionHeaderView.h"
 //#import "SectionFooterView.h"
+#import "FKPreviewController.h"
+#import "FKPreviewAnimator.h"
 
 @import Photos;
 
 static NSString * const CollectionViewCellIdentifier = @"CollectionViewCellIdentifier";
 
-@interface ViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, FKCollectionViewLayoutDelegate>
+@interface ViewController () <UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, FKCollectionViewLayoutDelegate, FKPreviewAnimatorDelegate>
 {
     NSArray <NSMutableArray *> *sizes;
+    NSIndexPath *selectedIndexPath;
 }
 
 @property (nonatomic) UICollectionView *collectionView;
@@ -97,6 +100,13 @@ static NSString * const CollectionViewCellIdentifier = @"CollectionViewCellIdent
     // Do any additional setup after loading the view, typically from a nib.
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+    [super viewWillAppear:animated];
+    
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+}
+
 - (void)viewWillLayoutSubviews
 {
     [super viewWillLayoutSubviews];
@@ -155,6 +165,18 @@ static NSString * const CollectionViewCellIdentifier = @"CollectionViewCellIdent
     return cell;
 }
 
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    FKImageCollectionViewCell *cell = (FKImageCollectionViewCell *)[collectionView cellForItemAtIndexPath:indexPath];
+    selectedIndexPath = indexPath;
+    
+    FKPreviewController *previewController = [[FKPreviewController alloc] initWithImage:cell.imageView.image];
+    UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:previewController];
+    navigationController.transitioningDelegate = [FKPreviewAnimator sharedAnimatorWithDelegate:self];
+    navigationController.modalTransitionStyle = UIModalPresentationCustom;
+    [self presentViewController:navigationController animated:YES completion:nil];
+}
+
 //- (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath
 //{
 //    if ([kind isEqualToString:UICollectionElementKindSectionHeader])
@@ -175,6 +197,25 @@ static NSString * const CollectionViewCellIdentifier = @"CollectionViewCellIdent
 - (CGSize)layoutSizeWithIndexPath:(NSIndexPath *)indexPath
 {
     return CGSizeFromString(sizes[indexPath.section][indexPath.row]);
+}
+
+#pragma mark - FKPreviewAnimatorDelegate
+
+- (NSIndexPath *)selectedIndexPath
+{
+    return selectedIndexPath;
+}
+
+- (UIImage *)selectedImageWithSelectedIndexPath:(NSIndexPath *)indexPath
+{
+    FKImageCollectionViewCell *cell = (FKImageCollectionViewCell *)[self.collectionView cellForItemAtIndexPath:indexPath];
+    return cell.imageView.image;
+}
+
+- (CGRect)fromRectWithSelectedIndex:(NSIndexPath *)indexPath
+{
+    UICollectionViewLayoutAttributes *attribute = [self.collectionView layoutAttributesForItemAtIndexPath:indexPath];
+    return [self.view convertRect:attribute.frame fromView:self.collectionView];
 }
 
 @end
