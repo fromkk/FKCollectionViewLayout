@@ -23,4 +23,6 @@
 - (instancetype)init UNAVAILABLE_ATTRIBUTE;
 + (instancetype)sharedAnimatorWithDelegate:(id <FKPreviewAnimatorDelegate>)delegate;
 
++ (CGRect)imageViewFrameWithImage:(UIImage *)image fromSuperViewSize:(CGSize)superViewSize;
+
 @end

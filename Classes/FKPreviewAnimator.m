@@ -12,6 +12,7 @@
 
 @property (nonatomic) BOOL presenting;
 @property (nonatomic) UIImageView *imageView;
+@property (nonatomic) UIView *backgroundView;
 
 @end
 
@@ -42,6 +43,18 @@
     
     _imageView = [[UIImageView alloc] init];
     return _imageView;
+}
+
+- (UIView *)backgroundView
+{
+    if (_backgroundView)
+    {
+        return _backgroundView;
+    }
+    
+    _backgroundView = [[UIView alloc] init];
+    _backgroundView.backgroundColor = [UIColor blackColor];
+    return _backgroundView;
 }
 
 #pragma mark - UIViewControllerTransitioningDelegate
@@ -79,15 +92,21 @@
 - (void)presentTransitionWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext
 {
     UIView *containerView = [transitionContext containerView];
-    self.imageView.contentMode = UIViewContentModeScaleAspectFit;
+    [containerView addSubview:self.backgroundView];
+    self.backgroundView.frame = containerView.bounds;
+    self.backgroundView.alpha = 0.0;
+    
+    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView.image = [self.delegate selectedImageWithSelectedIndexPath:[self.delegate selectedIndexPath]];
     self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
     [containerView addSubview:self.imageView];
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
-        self.imageView.frame = [UIScreen mainScreen].bounds;
+        self.imageView.frame = [[self class] imageViewFrameWithImage:self.imageView.image fromSuperViewSize:[UIScreen mainScreen].bounds.size];
+        self.backgroundView.alpha = 1.0;
     } completion:^(BOOL finished) {
         [self.imageView removeFromSuperview];
+        [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
     }];
 }
@@ -99,9 +118,13 @@
     UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     [containerView addSubview:toViewController.view];
     
+    self.backgroundView.alpha = 1.0;
+    [containerView addSubview:self.backgroundView];
+    self.backgroundView.frame = containerView.bounds;
+    
     self.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView.image = [self.delegate selectedImageWithSelectedIndexPath:[self.delegate selectedIndexPath]];
-    self.imageView.frame = [UIScreen mainScreen].bounds;
+    self.imageView.frame = [[self class] imageViewFrameWithImage:self.imageView.image fromSuperViewSize:[UIScreen mainScreen].bounds.size];
     [containerView addSubview:self.imageView];
     
     UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
@@ -109,8 +132,10 @@
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
         self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
+        self.backgroundView.alpha = 0.0;
     } completion:^(BOOL finished) {
         [self.imageView removeFromSuperview];
+        [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
     }];
 }
@@ -128,6 +153,28 @@
         self.delegate = nil;
     }
     [transitionContext completeTransition:YES];
+}
+
+#pragma mark - imageView frame
+
++ (CGRect)imageViewFrameWithImage:(UIImage *)image fromSuperViewSize:(CGSize)superViewSize
+{
+    CGRect imageViewFrame = CGRectZero;
+    
+    CGFloat aspectWidth = superViewSize.width / image.size.width;
+    CGFloat aspectHeight = superViewSize.height / image.size.height;
+    
+    if (aspectWidth < aspectHeight)
+    {
+        imageViewFrame.size = CGSizeMake(superViewSize.width, image.size.height * aspectWidth);
+    } else
+    {
+        imageViewFrame.size = CGSizeMake(image.size.width * aspectHeight, superViewSize.width);
+    }
+    
+    imageViewFrame.origin = CGPointMake((superViewSize.width - imageViewFrame.size.width) / 2.0, (superViewSize.height - imageViewFrame.size.height) / 2.0);
+    
+    return imageViewFrame;
 }
 
 @end

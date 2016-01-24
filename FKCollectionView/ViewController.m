@@ -100,13 +100,6 @@ static NSString * const CollectionViewCellIdentifier = @"CollectionViewCellIdent
     // Do any additional setup after loading the view, typically from a nib.
 }
 
-- (void)viewWillAppear:(BOOL)animated
-{
-    [super viewWillAppear:animated];
-    
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-}
-
 - (void)viewWillLayoutSubviews
 {
     [super viewWillLayoutSubviews];

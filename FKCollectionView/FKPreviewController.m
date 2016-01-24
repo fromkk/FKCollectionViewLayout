@@ -38,6 +38,8 @@
     
     self.navigationItem.leftBarButtonItem = self.closeButton;
     
+    self.scrollView.scrollEnabled = YES;
+    self.scrollView.userInteractionEnabled = YES;
     self.view.backgroundColor = [UIColor blackColor];
     [self.scrollView addSubview:self.imageView];
     
@@ -51,6 +53,8 @@
 
 - (void)viewWillLayoutSubviews
 {
+    [super viewWillLayoutSubviews];
+    
     self.scrollView.frame = [[UIScreen mainScreen] bounds];
     
     self.imageView.frame = self.view.bounds;
@@ -83,7 +87,7 @@
 
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
-    return _imageView;
+    return self.imageView;
 }
 
 #pragma mark - element
