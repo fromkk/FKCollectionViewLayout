@@ -107,13 +107,11 @@ static CGFloat const previewDismissBorder = 40.0;
 
 - (NSTimeInterval)transitionDuration:(id<UIViewControllerContextTransitioning>)transitionContext
 {
-    return 0.33;
+    return 0.5;
 }
 
 - (void)presentTransitionWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext
 {
-    NSLog(@"%s", __PRETTY_FUNCTION__);
-    
     UIView *containerView = [transitionContext containerView];
     [containerView addGestureRecognizer:self.panGesture];
     
@@ -165,8 +163,6 @@ static CGFloat const previewDismissBorder = 40.0;
         [self.imageView removeFromSuperview];
         [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
-        
-        [fromViewController.view removeGestureRecognizer:self.panGesture];
         _currentContext = nil;
     }];
 }
@@ -182,7 +178,22 @@ static CGFloat const previewDismissBorder = 40.0;
         [transitionContext completeTransition:YES];
     } else
     {
-        self.delegate = nil;
+        UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+        if ([transitionContext transitionWasCancelled])
+        {
+            UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+            [toViewController.view removeFromSuperview];
+            
+            UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+            [containerView addSubview:fromViewController.view];
+            
+            [containerView addGestureRecognizer:self.panGesture];
+        } else
+        {
+            [fromViewController.view removeGestureRecognizer:self.panGesture];
+            self.delegate = nil;
+        }
+        
         [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
     }
 }
