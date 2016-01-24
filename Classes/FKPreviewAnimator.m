@@ -13,7 +13,9 @@ static CGFloat const previewDismissBorder = 40.0;
 @interface FKPreviewAnimator ()
 {
     CGPoint startPoint;
+    CGPoint goalPoint;
     CGPoint lastPoint;
+    CGPoint currentPoint;
 }
 
 @property (nonatomic) BOOL presenting;
@@ -22,6 +24,8 @@ static CGFloat const previewDismissBorder = 40.0;
 
 @property (nonatomic) id <UIViewControllerContextTransitioning> currentContext;
 @property (nonatomic) UIPanGestureRecognizer *panGesture;
+
+@property (nonatomic) UIPercentDrivenInteractiveTransition *interactiveController;
 
 - (void)onPanGestureDidReceived:(UIPanGestureRecognizer *)panGesture;
 
@@ -83,6 +87,11 @@ static CGFloat const previewDismissBorder = 40.0;
     return self;
 }
 
+- (id <UIViewControllerInteractiveTransitioning>)interactionControllerForDismissal:(id<UIViewControllerAnimatedTransitioning>)animator
+{
+    return self.interactiveController;
+}
+
 #pragma mark - UIViewControllerAnimatedTransitioning
 
 - (void)animateTransition:(id<UIViewControllerContextTransitioning>)transitionContext
@@ -103,7 +112,11 @@ static CGFloat const previewDismissBorder = 40.0;
 
 - (void)presentTransitionWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext
 {
+    NSLog(@"%s", __PRETTY_FUNCTION__);
+    
     UIView *containerView = [transitionContext containerView];
+    [containerView addGestureRecognizer:self.panGesture];
+    
     [containerView addSubview:self.backgroundView];
     self.backgroundView.frame = containerView.bounds;
     self.backgroundView.alpha = 0.0;
@@ -112,25 +125,13 @@ static CGFloat const previewDismissBorder = 40.0;
     self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
     [containerView addSubview:self.imageView];
     
-    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+    [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0.0 usingSpringWithDamping:0.7 initialSpringVelocity:0.0 options:UIViewAnimationOptionCurveLinear animations:^{
         self.imageView.frame = [[self class] imageViewFrameWithImage:self.imageView.image fromSuperViewSize:[UIScreen mainScreen].bounds.size];
         self.backgroundView.alpha = 1.0;
     } completion:^(BOOL finished) {
         [self.imageView removeFromSuperview];
         [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
-        
-        UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
-        
-        if ([toViewController isKindOfClass:[UINavigationController class]])
-        {
-            [(UINavigationController *)toViewController visibleViewController].view.userInteractionEnabled = YES;
-            [[(UINavigationController *)toViewController visibleViewController].view addGestureRecognizer:self.panGesture];
-        } else
-        {
-            toViewController.view.userInteractionEnabled = YES;
-            [toViewController.view addGestureRecognizer:self.panGesture];
-        }
         
         _currentContext = transitionContext;
     }];
@@ -157,7 +158,7 @@ static CGFloat const previewDismissBorder = 40.0;
     self.imageView.frame = frame;
     [containerView addSubview:self.imageView];
     
-    [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
+    [UIView animateWithDuration:[self transitionDuration:transitionContext] delay:0.0 usingSpringWithDamping:0.7 initialSpringVelocity:0.0 options:UIViewAnimationOptionCurveLinear animations:^{
         self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
         self.backgroundView.alpha = 0.0;
     } completion:^(BOOL finished) {
@@ -178,11 +179,12 @@ static CGFloat const previewDismissBorder = 40.0;
     if (_presenting)
     {
         [containerView addSubview:toViewController.view];
+        [transitionContext completeTransition:YES];
     } else
     {
         self.delegate = nil;
+        [transitionContext completeTransition:![transitionContext transitionWasCancelled]];
     }
-    [transitionContext completeTransition:YES];
 }
 
 #pragma mark - imageView frame
@@ -229,36 +231,35 @@ static CGFloat const previewDismissBorder = 40.0;
     
     UIViewController *toViewController = [_currentContext viewControllerForKey:UITransitionContextToViewControllerKey];
     
-    void (^cancelToViewController)() = ^{
-        [UIView animateWithDuration:[self transitionDuration:_currentContext] animations:^{
-            CGRect frame = toViewController.view.frame;
-            frame.origin = CGPointZero;
-            toViewController.view.frame = frame;
-        }];
-    };
-    
     switch (panGesture.state) {
         case UIGestureRecognizerStateBegan:
         {
-            lastPoint = [panGesture locationInView:toViewController.view];
+            lastPoint = [panGesture locationInView:[UIApplication sharedApplication].keyWindow];
             startPoint = lastPoint;
+            goalPoint = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]].origin;
+            currentPoint = toViewController.view.frame.origin;
+            
+            self.interactiveController = [[UIPercentDrivenInteractiveTransition alloc] init];
+            [toViewController dismissViewControllerAnimated:YES completion:nil];
         }
             break;
         case UIGestureRecognizerStateChanged:
         {
-            CGPoint currentPoint = [panGesture locationInView:[[UIApplication sharedApplication] keyWindow]];
-            CGPoint diffPoint = CGPointMake(currentPoint.x - lastPoint.x, currentPoint.y - lastPoint.y);
+            CGPoint tmpPoint = [panGesture locationInView:[UIApplication sharedApplication].keyWindow];
+            CGFloat diff = tmpPoint.y - lastPoint.y;
+            currentPoint.y += diff;
             
-            CGRect frame = toViewController.view.frame;
-            frame.origin.y += diffPoint.y;
-            toViewController.view.frame = frame;
+            CGFloat transitionProgress = fabs(currentPoint.y / goalPoint.y);
             
-            lastPoint = currentPoint;
+            [self.interactiveController updateInteractiveTransition:fabs(transitionProgress)];
+            
+            lastPoint = tmpPoint;
         }
             break;
         case UIGestureRecognizerStateCancelled:
         {
-            cancelToViewController();
+            [self.interactiveController cancelInteractiveTransition];
+            self.interactiveController = nil;
         }
             break;
         case UIGestureRecognizerStateEnded:
@@ -266,10 +267,12 @@ static CGFloat const previewDismissBorder = 40.0;
             CGFloat diff = fabs(startPoint.y - lastPoint.y);
             if (previewDismissBorder <= diff)
             {
-                [toViewController dismissViewControllerAnimated:YES completion:nil];
+                [self.interactiveController finishInteractiveTransition];
+                self.interactiveController = nil;
             } else
             {
-                cancelToViewController();
+                [self.interactiveController cancelInteractiveTransition];
+                self.interactiveController = nil;
             }
         }
             break;
