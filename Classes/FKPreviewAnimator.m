@@ -8,11 +8,22 @@
 
 #import "FKPreviewAnimator.h"
 
+static CGFloat const previewDismissBorder = 40.0;
+
 @interface FKPreviewAnimator ()
+{
+    CGPoint startPoint;
+    CGPoint lastPoint;
+}
 
 @property (nonatomic) BOOL presenting;
 @property (nonatomic) UIImageView *imageView;
 @property (nonatomic) UIView *backgroundView;
+
+@property (nonatomic) id <UIViewControllerContextTransitioning> currentContext;
+@property (nonatomic) UIPanGestureRecognizer *panGesture;
+
+- (void)onPanGestureDidReceived:(UIPanGestureRecognizer *)panGesture;
 
 @end
 
@@ -42,6 +53,7 @@
     }
     
     _imageView = [[UIImageView alloc] init];
+    _imageView.contentMode = UIViewContentModeScaleAspectFill;
     return _imageView;
 }
 
@@ -96,7 +108,6 @@
     self.backgroundView.frame = containerView.bounds;
     self.backgroundView.alpha = 0.0;
     
-    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView.image = [self.delegate selectedImageWithSelectedIndexPath:[self.delegate selectedIndexPath]];
     self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
     [containerView addSubview:self.imageView];
@@ -108,6 +119,20 @@
         [self.imageView removeFromSuperview];
         [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
+        
+        UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+        
+        if ([toViewController isKindOfClass:[UINavigationController class]])
+        {
+            [(UINavigationController *)toViewController visibleViewController].view.userInteractionEnabled = YES;
+            [[(UINavigationController *)toViewController visibleViewController].view addGestureRecognizer:self.panGesture];
+        } else
+        {
+            toViewController.view.userInteractionEnabled = YES;
+            [toViewController.view addGestureRecognizer:self.panGesture];
+        }
+        
+        _currentContext = transitionContext;
     }];
 }
 
@@ -118,17 +143,19 @@
     UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
     [containerView addSubview:toViewController.view];
     
+    UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
+    [fromViewController.view removeFromSuperview];
+    
     self.backgroundView.alpha = 1.0;
     [containerView addSubview:self.backgroundView];
     self.backgroundView.frame = containerView.bounds;
     
-    self.imageView.contentMode = UIViewContentModeScaleAspectFill;
     self.imageView.image = [self.delegate selectedImageWithSelectedIndexPath:[self.delegate selectedIndexPath]];
-    self.imageView.frame = [[self class] imageViewFrameWithImage:self.imageView.image fromSuperViewSize:[UIScreen mainScreen].bounds.size];
-    [containerView addSubview:self.imageView];
+    CGRect frame = [[self class] imageViewFrameWithImage:self.imageView.image fromSuperViewSize:[UIScreen mainScreen].bounds.size];
+    frame.origin.y += fromViewController.view.frame.origin.y;
     
-    UIViewController *fromViewController = [transitionContext viewControllerForKey:UITransitionContextFromViewControllerKey];
-    [fromViewController.view removeFromSuperview];
+    self.imageView.frame = frame;
+    [containerView addSubview:self.imageView];
     
     [UIView animateWithDuration:[self transitionDuration:transitionContext] animations:^{
         self.imageView.frame = [self.delegate fromRectWithSelectedIndex:[self.delegate selectedIndexPath]];
@@ -137,6 +164,9 @@
         [self.imageView removeFromSuperview];
         [self.backgroundView removeFromSuperview];
         [self transitionCompletion:transitionContext];
+        
+        [fromViewController.view removeGestureRecognizer:self.panGesture];
+        _currentContext = nil;
     }];
 }
 
@@ -175,6 +205,77 @@
     imageViewFrame.origin = CGPointMake((superViewSize.width - imageViewFrame.size.width) / 2.0, (superViewSize.height - imageViewFrame.size.height) / 2.0);
     
     return imageViewFrame;
+}
+
+#pragma mark - panGesture
+
+- (UIPanGestureRecognizer *)panGesture
+{
+    if (_panGesture)
+    {
+        return _panGesture;
+    }
+    
+    _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(onPanGestureDidReceived:)];
+    return _panGesture;
+}
+
+- (void)onPanGestureDidReceived:(UIPanGestureRecognizer *)panGesture
+{
+    if (nil == _currentContext)
+    {
+        return;
+    }
+    
+    UIViewController *toViewController = [_currentContext viewControllerForKey:UITransitionContextToViewControllerKey];
+    
+    void (^cancelToViewController)() = ^{
+        [UIView animateWithDuration:[self transitionDuration:_currentContext] animations:^{
+            CGRect frame = toViewController.view.frame;
+            frame.origin = CGPointZero;
+            toViewController.view.frame = frame;
+        }];
+    };
+    
+    switch (panGesture.state) {
+        case UIGestureRecognizerStateBegan:
+        {
+            lastPoint = [panGesture locationInView:toViewController.view];
+            startPoint = lastPoint;
+        }
+            break;
+        case UIGestureRecognizerStateChanged:
+        {
+            CGPoint currentPoint = [panGesture locationInView:[[UIApplication sharedApplication] keyWindow]];
+            CGPoint diffPoint = CGPointMake(currentPoint.x - lastPoint.x, currentPoint.y - lastPoint.y);
+            
+            CGRect frame = toViewController.view.frame;
+            frame.origin.y += diffPoint.y;
+            toViewController.view.frame = frame;
+            
+            lastPoint = currentPoint;
+        }
+            break;
+        case UIGestureRecognizerStateCancelled:
+        {
+            cancelToViewController();
+        }
+            break;
+        case UIGestureRecognizerStateEnded:
+        {
+            CGFloat diff = fabs(startPoint.y - lastPoint.y);
+            if (previewDismissBorder <= diff)
+            {
+                [toViewController dismissViewControllerAnimated:YES completion:nil];
+            } else
+            {
+                cancelToViewController();
+            }
+        }
+            break;
+        default:
+            break;
+    }
 }
 
 @end

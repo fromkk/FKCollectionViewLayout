@@ -34,13 +34,17 @@
 
 - (void)loadView
 {
-    self.view = self.scrollView;
+    [super loadView];
     
+    self.automaticallyAdjustsScrollViewInsets = NO;
     self.navigationItem.leftBarButtonItem = self.closeButton;
     
+    self.view.backgroundColor = [UIColor blackColor];
+    [self.view addSubview:self.scrollView];
+    
+    self.scrollView.contentInset = UIEdgeInsetsZero;
     self.scrollView.scrollEnabled = YES;
     self.scrollView.userInteractionEnabled = YES;
-    self.view.backgroundColor = [UIColor blackColor];
     [self.scrollView addSubview:self.imageView];
     
     self.imageView.image = self.image;
@@ -55,7 +59,7 @@
 {
     [super viewWillLayoutSubviews];
     
-    self.scrollView.frame = [[UIScreen mainScreen] bounds];
+    self.scrollView.frame = self.view.bounds;
     
     self.imageView.frame = self.view.bounds;
     self.scrollView.contentSize = self.imageView.frame.size;
